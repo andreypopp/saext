@@ -30,8 +30,11 @@ class ColumnGenerator(object):
     def __init__(self, element):
         self.element = element
 
-    def __getattr__(self, name):
+    def __getitem__(self, name):
         return GeneratedColumn(self.element, name)
+
+    def __getattr__(self, name):
+        return self[name]
 
     def __iter__(self):
         return iter([literal_column("*")])
