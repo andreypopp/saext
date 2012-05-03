@@ -1,0 +1,57 @@
+saext.textual -- dealing with raw SQL
+=====================================
+
+Sometimes we need to deal with raw SQL but sqlalchemy only provides
+:func:`sqlalchemy.text` construct which is limited in terms of expressibility --
+we can only use it for complete SQL statements but there are rare cases we want,
+for example, reuse raw SQL SELECT statement and join it with another sqlalchemy
+construct and what else... saext.textual module tries to provide such utilities.
+
+SELECT as raw SQL via raw_select
+--------------------------------
+
+We need to express select construct as raw SQL and be able to JOIN it against
+arbitrary other constructs, there's :func:`raw_select` for that::
+
+  >>> from saext.textual import raw_select
+
+  >>> q = raw_select("select a, b, c from t")
+  >>> print q
+  select a, b, c from t
+
+To do subqueries and joins we need to alias our statement::
+
+  >>> sq = q.alias("q")
+  >>> print sq # TODO: maybe we need to get rid of parens
+  (select a, b, c from t)
+
+we can access columns on aliased subselects::
+
+  >>> print sq.c.a
+  q.a
+
+and do subselects::
+
+  >>> from sqlalchemy import select
+  >>> print select([sq])
+  SELECT * 
+  FROM (select a, b, c from t) AS q
+
+We should be able to do double alias::
+
+  >>> sq2 = sq.alias("q2")
+  >>> print sq2
+  (select a, b, c from t)
+
+columns access works as previously::
+
+  >>> print sq2.c.a
+  q2.a
+
+We can also do joins::
+
+  >>> print select([1]).select_from(sq2.join(sq, sq2.c.a == sq.c.b)) 
+  ...   # doctest: +NORMALIZE_WHITESPACE
+  SELECT 1 
+  FROM (select a, b, c from t) AS q2
+    JOIN (select a, b, c from t) AS q ON q2.a = q.b

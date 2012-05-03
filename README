@@ -1,0 +1,12 @@
+saext -- various extenstions to sqlalchemy
+==========================================
+
+  * saext.textual -- dealing with raw SQL
+
+    >>> from saext.textual import raw_select
+    >>> from sqlalchemy import select
+    >>> q = raw_select("select 1 as b").alias("q")
+    >>> q2 = q.alias("q2")
+    >>> print select([q.join(q2, q.c.b == q2.c.b)])
+    SELECT *
+    FROM (select 1 as b) q JOIN (select 1 as b) q2 ON q.b = q2.b
