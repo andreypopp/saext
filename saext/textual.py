@@ -56,8 +56,9 @@ class _RawSelectClause(_TextClause):
 
     columns = []
 
-    def alias(self, name):
-        return Alias(_Grouping(self), name)
+    def alias(self, name, group=True):
+        el = _Grouping(self) if group else self
+        return Alias(el, name)
 
 def raw_select(*args, **kw):
     return _RawSelectClause(*args, **kw)
